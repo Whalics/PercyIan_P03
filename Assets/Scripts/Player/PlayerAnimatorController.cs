@@ -14,20 +14,51 @@ public class PlayerAnimatorController : MonoBehaviour
     [Header("Script References")]
     [SerializeField] PhysicsObject physicsobject;
 
+    [Header("Variables")]
+    [SerializeField] bool block;
     void Start(){
 
         playerAnimator = this.gameObject.GetComponent<Animator>();
         spriteRenderer = this.gameObject.GetComponent<SpriteRenderer>();
 
-        physicsobject = this.gameObject.GetComponent<PhysicsObject>();
+        //physicsobject = this.gameObject.GetComponent<PhysicsObject>();
     } 
 
     void Update(){
-        if(Input.GetKey("a") || Input.GetKey("left"))
-                spriteRenderer.flipX = true;
+        if((Input.GetKey("a") || Input.GetKey("d") || Input.GetKey("left") || Input.GetKey("right")) && physicsobject.grounded && !block)
+            ChangeAnimatorState("Walk");
+        
+        if(!physicsobject.grounded && physicsobject.velocity.y > 0f && !block)
+            ChangeAnimatorState("JumpUp");
+        else if(!physicsobject.grounded && physicsobject.velocity.y < 0f && !block)
+            ChangeAnimatorState("JumpDown");
+        
+        if((!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey("a") && !Input.GetKey("d") && !Input.GetKey("left") && !Input.GetKey("right")) && physicsobject.grounded)
+            ChangeAnimatorState("Idle");
 
-         if(Input.GetKey("d") || Input.GetKey("right"))
-                spriteRenderer.flipX = false;
+        if(!physicsobject.grounded && Input.GetKeyDown(KeyCode.LeftControl)){
+            block = true;
+            ChangeAnimatorState("Block");
+        }
+        
+        // if(block && !physicsobject.grounded && physicsobject.velocity.y < -2f)
+        //     ChangeAnimatorState("BlockDown");
+        
+
+        if(block && physicsobject.grounded)
+            ChangeAnimatorState("BlockLand");
+
+        if(block && (Input.GetKeyUp(KeyCode.LeftControl) || physicsobject.grounded))
+            block = false;
+
+        
+
+        
+        if((Input.GetKey("a") || Input.GetKey("left")) && (!Input.GetKey("d") && !Input.GetKey("right")))
+            spriteRenderer.flipX = true;
+
+         if((Input.GetKey("d") || Input.GetKey("right")) && (!Input.GetKey("a") && !Input.GetKey("left")))
+            spriteRenderer.flipX = false;
 
         if(!physicsobject.grounded){
             Debug.Log("not grounded");

@@ -7,6 +7,7 @@ public class PlayerMovementController : PhysicsObject
     // Start is called before the first frame update
         public float maxSpeed = 3.1f;
         public float jumpTakeOffSpeed = 7f;
+        public float blockSpeed = 1f;
         //PlayerAnimatorController playeranimatorcontroller;
         public AudioSource jump;
         public AudioSource big_jump;
@@ -44,6 +45,12 @@ public class PlayerMovementController : PhysicsObject
                 }
             }
 
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !grounded)
+            {
+                Physics.gravity = Vector3.zero;
+                velocity.y = blockSpeed;
+                targetVelocity = move*0;
+            }
 
             targetVelocity = move * maxSpeed;
         }
