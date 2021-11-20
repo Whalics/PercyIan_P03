@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class PhysicsObject : MonoBehaviour
 {
     [Header("Physics")]
@@ -12,13 +13,16 @@ public class PhysicsObject : MonoBehaviour
     public float minGroundNormalY = 0.65f;
     [SerializeField] public Vector2 velocity;
     public float gravityModifier = 2f;
+    public float gravityMultiplier;
     protected Rigidbody2D rb;
     protected const float minMoveDistance = 0.001f;
     protected ContactFilter2D contactFilter;
     protected RaycastHit2D[] hitBuffer = new RaycastHit2D[16];
     protected const float shellRadius = 0.01f;
     protected List<RaycastHit2D> hitBufferList = new List<RaycastHit2D>(16);
-
+    public bool transforming;
+    public bool block;
+    public bool landed;
     //OnEnable is called when script is enabled
     void OnEnable()
     {
@@ -43,14 +47,21 @@ public class PhysicsObject : MonoBehaviour
     {
 
     }
+
+    protected virtual void ResetCo()
+    {
+
+    }
     //Fixed update is a concrete update function
     void FixedUpdate()
     {
 
-        velocity += gravityModifier * Physics2D.gravity * Time.deltaTime;
+        velocity += gravityModifier * Physics2D.gravity * Time.deltaTime * gravityMultiplier;
 
-        
+        if(!block && !transforming)
         velocity.x = targetVelocity.x;
+        else
+        velocity.x = 0;
 
         grounded = false;
         
@@ -102,7 +113,9 @@ public class PhysicsObject : MonoBehaviour
                 distance = modifiedDistance < distance ? modifiedDistance : distance;
             }
         }
-
+        if(grounded && block && !landed){
+            ResetCo();
+        }
         rb.position = rb.position + move.normalized * distance;
     }
 }

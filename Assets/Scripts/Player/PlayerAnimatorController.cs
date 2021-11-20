@@ -13,9 +13,6 @@ public class PlayerAnimatorController : MonoBehaviour
 
     [Header("Script References")]
     [SerializeField] PhysicsObject physicsobject;
-
-    [Header("Variables")]
-    [SerializeField] bool block;
     void Start(){
 
         playerAnimator = this.gameObject.GetComponent<Animator>();
@@ -25,31 +22,20 @@ public class PlayerAnimatorController : MonoBehaviour
     } 
 
     void Update(){
-        if((Input.GetKey("a") || Input.GetKey("d") || Input.GetKey("left") || Input.GetKey("right")) && physicsobject.grounded && !block)
+        if(!physicsobject.block  && !physicsobject.transforming && (Input.GetKey("a") || Input.GetKey("d") || Input.GetKey("left") || Input.GetKey("right")) && physicsobject.grounded)
             ChangeAnimatorState("Walk");
         
-        if(!physicsobject.grounded && physicsobject.velocity.y > 0f && !block)
+        if(!physicsobject.block && !physicsobject.transforming && !physicsobject.grounded && physicsobject.velocity.y > 0f)
             ChangeAnimatorState("JumpUp");
-        else if(!physicsobject.grounded && physicsobject.velocity.y < 0f && !block)
+        else if(!physicsobject.block  &&  !physicsobject.transforming && !physicsobject.grounded && physicsobject.velocity.y < 0f)
             ChangeAnimatorState("JumpDown");
         
-        if((!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey("a") && !Input.GetKey("d") && !Input.GetKey("left") && !Input.GetKey("right")) && physicsobject.grounded)
+        if(!physicsobject.block && !physicsobject.transforming && (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey("a") && !Input.GetKey("d") && !Input.GetKey("left") && !Input.GetKey("right")) && physicsobject.grounded)
             ChangeAnimatorState("Idle");
 
-        if(!physicsobject.grounded && Input.GetKeyDown(KeyCode.LeftControl)){
-            block = true;
-            ChangeAnimatorState("Block");
-        }
         
         // if(block && !physicsobject.grounded && physicsobject.velocity.y < -2f)
         //     ChangeAnimatorState("BlockDown");
-        
-
-        if(block && physicsobject.grounded)
-            ChangeAnimatorState("BlockLand");
-
-        if(block && (Input.GetKeyUp(KeyCode.LeftControl) || physicsobject.grounded))
-            block = false;
 
         
 
