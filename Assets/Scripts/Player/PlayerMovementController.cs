@@ -6,12 +6,14 @@ using EZCameraShake;
 public class PlayerMovementController : PhysicsObject
 {
     // Start is called before the first frame update
-        public float maxSpeed = 3.1f;
+        
         public float jumpTakeOffSpeed = 7f;
         public float blockSpeed = -20f;
         PlayerAnimatorController playeranimatorcontroller;
         public AudioSource jump;
         public AudioSource big_jump;
+        public bool wait;
+ 
         //PauseMenu pausemenu;
 
         void Start()
@@ -27,7 +29,7 @@ public class PlayerMovementController : PhysicsObject
         
         
         void SetState(){
-            if(transforming){
+            if(transforming && !grounded){
                 gravityMultiplier = 0;
                 velocity.y = Mathf.Abs(Physics2D.gravity.y) * Time.deltaTime;
             }
@@ -39,9 +41,9 @@ public class PlayerMovementController : PhysicsObject
                 gravityMultiplier = 1;
             }
 
-            if(transforming){
-            playeranimatorcontroller.ChangeAnimatorState("Block");
-        }
+        //     if(transforming){
+        //     playeranimatorcontroller.ChangeAnimatorState("Block");
+        // }
         }
          
 
@@ -52,9 +54,13 @@ public class PlayerMovementController : PhysicsObject
             
             move.x = Input.GetAxis("Horizontal");
             
+            // if(Input.GetKey(KeyCode.LeftControl)){
+            //     groundblock = true;
+            // }
+
             
-            
-            if (Input.GetButtonDown("Jump") && grounded)
+
+            if (Input.GetButtonDown("Jump") && grounded && !block)
             {
                 velocity.y = jumpTakeOffSpeed;
                 jump.Play();
@@ -67,31 +73,69 @@ public class PlayerMovementController : PhysicsObject
                 }
             }
 
-            if (Input.GetKeyDown(KeyCode.LeftControl) && !grounded && !transforming && !block)
+            if (Input.GetKeyDown(KeyCode.LeftControl) && !transforming && !block && !unblock)
             {
+                if(grounded)
+                    onGround = true;
+                else
+                    onGround = false;
+
                 transforming = true;
                 StartCoroutine(Transformed());
+                Debug.Log("transforming");
                 //Physics.gravity = new Vector3(0, 9.81f, 0);
                 //targetVelocity = move*0;
             }
+
+            if (Input.GetKeyDown(KeyCode.LeftControl) && grounded && !transforming && !block){
+                //groundblock = true;
+                StartCoroutine(ShakeDelayCo());
+            }
+
+            if(grounded && block && !unblock && !transforming && Input.GetKeyUp(KeyCode.LeftControl)){
+                StartCoroutine(Unblock());
+            }
+
+            // if(grounded && !wait && Input.GetKeyUp(KeyCode.LeftControl)){
+            //     StartCoroutine(Reset());
+            //     Debug.Log("deasdfasdf");
+                
+            // }
 
             targetVelocity = move * maxSpeed;
         }
 
         public IEnumerator Transformed(){
-            if(transforming && !block){
+            if(!onGround && transforming && !block)
                 playeranimatorcontroller.ChangeAnimatorState("Block");
-            yield return new WaitForSeconds(0.4f);
+            if(onGround && transforming && !block)
+                playeranimatorcontroller.ChangeAnimatorState("GroundBlock");
+            yield return new WaitForSeconds(0.3f);
                 transforming = false;
                 block = true;
-            }
+            // if(!Input.GetKey(KeyCode.LeftControl))
+            //     StartCoroutine(Unblock());
         }
 
         public IEnumerator Reset(){
-            playeranimatorcontroller.ChangeAnimatorState("Unblock");
-            yield return new WaitForSeconds(0.3f);
             transforming = false;
             block = false;
+            landed = false;
+            nowalk = false;
+            unblock = false;
+            yield break;
+        }
+
+        public IEnumerator Unblock(){
+            unblock = true;
+            playeranimatorcontroller.ChangeAnimatorState("Unblock");
+            yield return new WaitForSeconds(0.3f);
+            StartCoroutine(Reset());
+        }
+
+        public IEnumerator ResetAfterbreak(){
+            yield return new WaitForSeconds(0.1f);
+            transforming = false;
             landed = false;
         }
         
@@ -101,9 +145,36 @@ public class PlayerMovementController : PhysicsObject
 
         public IEnumerator Land(){
             landed = true;
-            CameraShaker.Instance.ShakeOnce(4f, 6f, 0.2f, 0.2f);
+            //if(Input.GetKey(KeyCode.LeftControl)){
+                //groundblock = true;
+            //}
+            Shake();
             playeranimatorcontroller.ChangeAnimatorState("BlockLand");
             yield return new WaitForSeconds(0.3f);
-            StartCoroutine(Reset());
+            playeranimatorcontroller.ChangeAnimatorState("BlockIdle");
+            if(!Input.GetKey(KeyCode.LeftControl)){
+                StartCoroutine(Unblock());
+            }
+            onGround = false;
         }
+
+        protected override void ResetAB()
+        {
+            StartCoroutine(ResetAfterbreak());
+        }
+
+        protected override void Shake(){
+            CameraShaker.Instance.ShakeOnce(4f, 6f, 0.2f, 0.2f);
+        }
+
+        // protected override void ShakeDelay(){
+        //     CameraShaker.Instance.ShakeOnce(4f, 6f, 0.2f, 0.2f);
+        // }
+
+        public IEnumerator ShakeDelayCo(){
+            yield return new WaitForSeconds(0.3f);
+            CameraShaker.Instance.ShakeOnce(3f, 5f, 0.2f, 0.2f);
+            yield return new WaitForSeconds(0.5f);
+        }
+        
 }

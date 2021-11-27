@@ -7,14 +7,14 @@ public class PhysicsObject : MonoBehaviour
 {
     [Header("Physics")]
     [SerializeField] protected Vector2 targetVelocity;
-
+    public LayerMask L_Breakable;
     public bool grounded;
     protected Vector2 groundNormal;
     public float minGroundNormalY = 0.65f;
     [SerializeField] public Vector2 velocity;
     public float gravityModifier = 2f;
     public float gravityMultiplier;
-    protected Rigidbody2D rb;
+    public Rigidbody2D rb;
     protected const float minMoveDistance = 0.001f;
     protected ContactFilter2D contactFilter;
     protected RaycastHit2D[] hitBuffer = new RaycastHit2D[16];
@@ -23,6 +23,15 @@ public class PhysicsObject : MonoBehaviour
     public bool transforming;
     public bool block;
     public bool landed;
+    public bool slow;
+    public ParticleSystem part;
+    public bool broken = false;
+    public Transform rcpos;
+    public bool nowalk;
+    public float maxSpeed;
+    public bool unblock;
+    public bool onGround;
+    Vector2 down = new Vector2(0,-1);
     //OnEnable is called when script is enabled
     void OnEnable()
     {
@@ -52,13 +61,23 @@ public class PhysicsObject : MonoBehaviour
     {
 
     }
+
+    protected virtual void Shake()
+    {
+
+    }
+
+    protected virtual void ResetAB()
+    {
+
+    }
     //Fixed update is a concrete update function
     void FixedUpdate()
     {
 
         velocity += gravityModifier * Physics2D.gravity * Time.deltaTime * gravityMultiplier;
 
-        if(!block && !transforming)
+        if(!block && !transforming && !nowalk && !unblock)
         velocity.x = targetVelocity.x;
         else
         velocity.x = 0;
@@ -80,7 +99,7 @@ public class PhysicsObject : MonoBehaviour
         Movement(move, true);
     }
 
-    void Movement(Vector2 move, bool yMovement)
+    public void Movement(Vector2 move, bool yMovement)
     {
         float distance = move.magnitude;
         if(distance > minMoveDistance)
@@ -113,9 +132,43 @@ public class PhysicsObject : MonoBehaviour
                 distance = modifiedDistance < distance ? modifiedDistance : distance;
             }
         }
-        if(grounded && block && !landed){
+        if(broken && grounded && block && !landed){
             ResetCo();
+            Debug.Log("ResetCo caled cuz alr hit and landed ");
         }
+        if(!broken && grounded && block && !landed){
+            Raycast();
+            Debug.Log("Raycast caled cuz havent hit yet");
+        }
+        
+
+        // if(broken && grounded && block && !landed){
+        //     ResetCo();
+        // }
         rb.position = rb.position + move.normalized * distance;
     }
+
+    public void Raycast(){
+            RaycastHit2D hit = Physics2D.Raycast(rcpos.position,down, Mathf.Infinity, L_Breakable);
+            Debug.DrawRay(rcpos.position,Vector3.down*100, Color.blue);
+            if(hit.collider != null){
+                if(hit && !broken && !onGround){
+                    broken = true;
+                    hit.collider.gameObject.SetActive(false);
+                    part.Play();
+                    ResetAB();
+                    Debug.Log("ResetAB caled czu raycast hit and abt to hit again");
+                    Shake();
+                    
+                }
+                
+                //Debug.Log("didnt hit");
+                
+            }
+            if(!broken){
+             Debug.Log("ResetCo called cuz never hit");
+                ResetCo();
+            }
+
+        }
 }

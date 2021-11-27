@@ -8,6 +8,8 @@ public class PlayerAnimatorController : MonoBehaviour
     [SerializeField] Animator playerAnimator;
     [SerializeField] SpriteRenderer spriteRenderer;
     
+    public bool wait;
+
     [Header("Animation")]
     [SerializeField] string currentState;
 
@@ -22,22 +24,33 @@ public class PlayerAnimatorController : MonoBehaviour
     } 
 
     void Update(){
-        if(!physicsobject.block  && !physicsobject.transforming && (Input.GetKey("a") || Input.GetKey("d") || Input.GetKey("left") || Input.GetKey("right")) && physicsobject.grounded)
+
+        // if(!physicsobject.groundblock){
+        //     physicsobject.nowalk = false;
+        // }
+        if(!physicsobject.unblock && !physicsobject.block && !physicsobject.transforming && (Input.GetKey("a") || Input.GetKey("d") || Input.GetKey("left") || Input.GetKey("right")) && physicsobject.grounded)
             ChangeAnimatorState("Walk");
+
+        if(!physicsobject.unblock && !wait && (Input.GetKey("a") || Input.GetKey("d") || Input.GetKey("left") || Input.GetKey("right")) && physicsobject.grounded){
+            //blockwalk = true;
+            //StartCoroutine(BlockWalk());
+        }
         
-        if(!physicsobject.block && !physicsobject.transforming && !physicsobject.grounded && physicsobject.velocity.y > 0f)
+        if(!physicsobject.unblock && !physicsobject.block && !physicsobject.transforming && !physicsobject.grounded && physicsobject.velocity.y > 0f)
             ChangeAnimatorState("JumpUp");
-        else if(!physicsobject.block  &&  !physicsobject.transforming && !physicsobject.grounded && physicsobject.velocity.y < 0f)
+        else if(!physicsobject.unblock && !physicsobject.block && !physicsobject.transforming && !physicsobject.grounded && physicsobject.velocity.y < 0f)
             ChangeAnimatorState("JumpDown");
         
-        if(!physicsobject.block && !physicsobject.transforming && (!Input.GetKey(KeyCode.LeftControl) && !Input.GetKey("a") && !Input.GetKey("d") && !Input.GetKey("left") && !Input.GetKey("right")) && physicsobject.grounded)
+        if(!physicsobject.unblock && !physicsobject.block && !physicsobject.transforming && (!Input.GetKey("a") && !Input.GetKey("d") && !Input.GetKey("left") && !Input.GetKey("right")) && physicsobject.grounded)
             ChangeAnimatorState("Idle");
-
+        
+        if(!physicsobject.unblock && !physicsobject.block && physicsobject.grounded && Input.GetKey(KeyCode.LeftControl)){
+            ChangeAnimatorState("BlockGround");
+        }
         
         // if(block && !physicsobject.grounded && physicsobject.velocity.y < -2f)
         //     ChangeAnimatorState("BlockDown");
 
-        
 
         
         if((Input.GetKey("a") || Input.GetKey("left")) && (!Input.GetKey("d") && !Input.GetKey("right")))
@@ -46,9 +59,7 @@ public class PlayerAnimatorController : MonoBehaviour
          if((Input.GetKey("d") || Input.GetKey("right")) && (!Input.GetKey("a") && !Input.GetKey("left")))
             spriteRenderer.flipX = false;
 
-        if(!physicsobject.grounded){
-            Debug.Log("not grounded");
-        }
+        
     }
 
     public void ChangeAnimatorState(string newState){
@@ -58,4 +69,19 @@ public class PlayerAnimatorController : MonoBehaviour
 
         currentState = newState;
     }
+
+    // public IEnumerator BlockWalk(){
+        
+    //     wait = true;
+    //     physicsobject.nowalk = false;
+    //     if(Input.GetKey(KeyCode.LeftControl)){
+    //     physicsobject.maxSpeed = 1f;
+    //     playerAnimator.Play("BlockWalk");
+    //     yield return new WaitForSeconds(0.6f);
+    //     physicsobject.nowalk = true;
+    //     yield return new WaitForSeconds(0.4f);
+    //     }
+    //     wait = false;
+    //     physicsobject.maxSpeed = 3.3f;
+    // }
 }
