@@ -31,6 +31,9 @@ public class PhysicsObject : MonoBehaviour
     public float maxSpeed;
     public bool unblock;
     public bool onGround;
+
+    public AudioSource source;
+    public AudioClip breaks;
     Vector2 down = new Vector2(0,-1);
     //OnEnable is called when script is enabled
     void OnEnable()
@@ -156,6 +159,7 @@ public class PhysicsObject : MonoBehaviour
                     broken = true;
                     hit.collider.gameObject.SetActive(false);
                     part.Play();
+                    source.Play();
                     ResetAB();
                     Debug.Log("ResetAB caled czu raycast hit and abt to hit again");
                     Shake();

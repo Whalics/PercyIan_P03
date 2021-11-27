@@ -13,7 +13,10 @@ public class PlayerMovementController : PhysicsObject
         public AudioSource jump;
         public AudioSource big_jump;
         public bool wait;
- 
+        public AudioClip landThud;
+        public AudioClip clothRipple;
+        public AudioSource source;
+        public AudioClip clothRipple2;
         //PauseMenu pausemenu;
 
         void Start()
@@ -106,6 +109,7 @@ public class PlayerMovementController : PhysicsObject
         }
 
         public IEnumerator Transformed(){
+            source.PlayOneShot(clothRipple,1f);
             if(!onGround && transforming && !block)
                 playeranimatorcontroller.ChangeAnimatorState("Block");
             if(onGround && transforming && !block)
@@ -128,6 +132,7 @@ public class PlayerMovementController : PhysicsObject
 
         public IEnumerator Unblock(){
             unblock = true;
+            source.PlayOneShot(clothRipple2,1f);
             playeranimatorcontroller.ChangeAnimatorState("Unblock");
             yield return new WaitForSeconds(0.3f);
             StartCoroutine(Reset());
@@ -145,6 +150,7 @@ public class PlayerMovementController : PhysicsObject
 
         public IEnumerator Land(){
             landed = true;
+            source.PlayOneShot(landThud,1f);
             //if(Input.GetKey(KeyCode.LeftControl)){
                 //groundblock = true;
             //}

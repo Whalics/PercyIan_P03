@@ -5,6 +5,7 @@ using UnityEngine;
 public class WindController : MonoBehaviour
 {
     public bool wind;
+    public AudioSource windSounds;
     public PhysicsObject physicsobject;
     public SpriteRenderer spWind;
     public SpriteRenderer spFade;
@@ -30,16 +31,19 @@ public class WindController : MonoBehaviour
 
     void FixedUpdate(){
         speed = a;
-        if(!physicsobject.transforming && !physicsobject.block && !physicsobject.unblock)
+        if(wind && !physicsobject.transforming && !physicsobject.block && !physicsobject.unblock)
         physicsobject.Movement(Vector2.left*(speed/6), true);
+        windSounds.volume = a/5;
         //physicsobject.rb.AddForce(Vector3.right*100, ForceMode2D.Impulse);
     }
 
     public IEnumerator FadeIn(){
+        wind = true;
             a = 0;
             do{
             spWind.color = new Color(1f,1f,1f,a);
             spFade.color = new Color(1f,1f,1f,a);
+            
             yield return new WaitForSeconds(0.02f);
             a+=0.01f;
         }
@@ -55,5 +59,6 @@ public class WindController : MonoBehaviour
             a-=0.01f;
         }
         while(a > 0);
+        wind = false;
     }
 }
