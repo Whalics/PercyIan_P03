@@ -35,12 +35,13 @@ public class PhysicsObject : MonoBehaviour
     public AudioSource source;
     public AudioClip breaks;
     Vector2 down = new Vector2(0,-1);
-    //OnEnable is called when script is enabled
+
+    
     void OnEnable()
     {
         rb = GetComponent<Rigidbody2D>();
     }
-    // Start is called before the first frame update
+    
     void Start()
     {
         contactFilter.useTriggers = false;
@@ -48,13 +49,13 @@ public class PhysicsObject : MonoBehaviour
         contactFilter.useLayerMask = true;
     }
 
-    // Update is called once per frame
     void Update()
     {
         targetVelocity = Vector2.zero;
 
         ComputeVelocity();
     }
+    
     protected virtual void ComputeVelocity()
     {
 
@@ -74,12 +75,13 @@ public class PhysicsObject : MonoBehaviour
     {
 
     }
-    //Fixed update is a concrete update function
+
     void FixedUpdate()
     {
 
         velocity += gravityModifier * Physics2D.gravity * Time.deltaTime * gravityMultiplier;
 
+        //player cannot move on x axis if any block interactions are taking place
         if(!block && !transforming && !nowalk && !unblock)
         velocity.x = targetVelocity.x;
         else
@@ -135,42 +137,42 @@ public class PhysicsObject : MonoBehaviour
                 distance = modifiedDistance < distance ? modifiedDistance : distance;
             }
         }
+
+        rb.position = rb.position + move.normalized * distance;
+        
+        //player land on hard ground if floor broken
         if(broken && grounded && block && !landed){
             ResetCo();
             Debug.Log("ResetCo caled cuz alr hit and landed ");
         }
+
+        //raycast if landing and haven't broken any ground yet
         if(!broken && grounded && block && !landed){
             Raycast();
-            Debug.Log("Raycast caled cuz havent hit yet");
         }
-        
 
-        // if(broken && grounded && block && !landed){
-        //     ResetCo();
-        // }
-        rb.position = rb.position + move.normalized * distance;
+        //update rigidbody pos
+      
     }
 
     public void Raycast(){
             RaycastHit2D hit = Physics2D.Raycast(rcpos.position,down, Mathf.Infinity, L_Breakable);
             Debug.DrawRay(rcpos.position,Vector3.down*100, Color.blue);
-            if(hit.collider != null){
+
+            if(hit.collider != null){ //collider null check
                 if(hit && !broken && !onGround){
                     broken = true;
                     hit.collider.gameObject.SetActive(false);
                     part.Play();
                     source.Play();
                     ResetAB();
-                    Debug.Log("ResetAB caled czu raycast hit and abt to hit again");
                     Shake();
-                    
                 }
                 
-                //Debug.Log("didnt hit");
                 
             }
+
             if(!broken){
-             Debug.Log("ResetCo called cuz never hit");
                 ResetCo();
             }
 
